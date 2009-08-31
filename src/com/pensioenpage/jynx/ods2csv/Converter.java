@@ -6,6 +6,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXParseException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.DefaultHandler;
+import org.xml.sax.helpers.XMLReaderFactory;
 
 /**
  * Core functionality for converting an ODS-document to CSV-text.
@@ -67,14 +72,118 @@ public final class Converter extends Object {
       ZipEntry entry = null, contentEntry = null;
       do {
          entry = zin.getNextEntry();
-         if (entry != null && "content.xml".equals(entry.getName())) {
+         if (entry != null && !entry.isDirectory() && "content.xml".equals(entry.getName())) {
             contentEntry = entry;
          }
       } while (entry != null && contentEntry == null);
 
       // No content.xml file found, fail
       if (contentEntry == null) {
-         throw new ConversionException("Unable to find \"content.xml\" entry in ZIP stream.");
+         throw new ConversionException("Unable to find \"content.xml\" file entry in ZIP stream.");
+      }
+
+      // Process the unzipped content.xml while it's unzipped (using SAX)
+      new XMLParser(out).parse(zin);
+   }
+
+   /**
+    * SAX handler for producing the CSV output.
+    *
+    * @author <a href="mailto:ernst@pensioenpage.com">Ernst de Haan</a>
+    */
+   private static class XMLParser extends DefaultHandler {
+
+      //----------------------------------------------------------------------
+      // Constructors
+      //----------------------------------------------------------------------
+
+      /**
+       * Constructs a new <code>XMLParser</code> that sends the CSV text
+       * output to the specified <code>OutputStream</code>.
+       *
+       * @param out
+       *    the {@link OutputStream} to send the CSV text output to,
+       *    cannot be <code>null</code>.
+       *
+       * @throws IllegalArgumentException
+       *    if <code>out == null</code>.
+       */
+      public XMLParser(OutputStream out) throws IllegalArgumentException {
+
+         // Check preconditions
+         if (out == null) {
+            throw new IllegalArgumentException("out == null");
+         }
+
+         // Initialize instance fields
+         _out = out;
+      }
+      
+
+      //----------------------------------------------------------------------
+      // Fields
+      //----------------------------------------------------------------------
+
+      /**
+       * The output stream. This is where the CSV output goes.
+       * Never <code>null</code>.
+       */
+      private final OutputStream _out;
+
+      /**
+       * The exception, in case of an error (fatal or not).
+       */
+      private Throwable _exception;
+
+
+      //----------------------------------------------------------------------
+      // Methods
+      //----------------------------------------------------------------------
+
+      public void parse(InputStream in)
+      throws IllegalArgumentException, ConversionException {
+
+         // Check preconditions
+         if (in == null) {
+            throw new IllegalArgumentException("in == null");
+         }
+
+         // Parse the input stream using SAX
+         Throwable cause;
+         try {
+            XMLReader xmlReader = XMLReaderFactory.createXMLReader();
+            xmlReader.setContentHandler(this);
+            xmlReader.setErrorHandler(this);
+            xmlReader.parse(new InputSource(in));
+            cause = null;
+
+         // Catch any exceptions thrown directly
+         } catch (Throwable e) {
+            cause = e;
+         }
+
+         // Also consider exceptions thrown deeper down
+         cause = (cause == null) ? _exception : cause;
+
+         // Wrap and rethrow if there was any exception
+         if (cause != null) {
+            throw new ConversionException("Failed to process \"content.xml\" entry.", cause);
+         }
+      }
+
+      @Override
+      public void warning(SAXParseException exception)  {
+         // empty
+      }
+
+      @Override
+      public void error(SAXParseException exception) {
+         _exception = exception;
+      }
+
+      @Override
+      public void fatalError(SAXParseException exception) {
+         _exception = exception;
       }
    }
 }
