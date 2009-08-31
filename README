@@ -17,7 +17,7 @@ runtime environment, verion 1.5 or higher.
 
 This software requires the following to build:
 
-   - J2SE 1.5 and Java SE 6
+   - J2SE 1.5 or Java SE 6
    - Ant 1.7.1
 
 This software is available under the terms of a BSD-style license, see
