@@ -4,6 +4,9 @@ package com.pensioenpage.jynx.ods2csv;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.Charset;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.xml.sax.Attributes;
@@ -88,6 +91,11 @@ public final class Converter extends Object {
       new XMLParser(out).parse(zin);
    }
 
+
+   //-------------------------------------------------------------------------
+   // Inner classes
+   //-------------------------------------------------------------------------
+
    /**
     * SAX handler for producing the CSV output.
     *
@@ -96,12 +104,36 @@ public final class Converter extends Object {
    private static class XMLParser extends DefaultHandler {
 
       //----------------------------------------------------------------------
+      // Class fields
+      //----------------------------------------------------------------------
+
+      /**
+       * The URI for the <em>office:</em> XML namespace used in OpenDocument
+       * documents.
+       */
+      private static final String OFFICE_NS = "urn:oasis:names:tc:opendocument:xmlns:office:1.0";
+
+      /**
+       * The URI for the <em>text:</em> XML namespace used in OpenDocument
+       * documents.
+       */
+      private static final String TEXT_NS = "urn:oasis:names:tc:opendocument:xmlns:text:1.0";
+
+      /**
+       * The URI for the <em>table:</em> XML namespace used in OpenDocument
+       * documents.
+       */
+      private static final String TABLE_NS = "urn:oasis:names:tc:opendocument:xmlns:table:1.0";
+
+
+      //----------------------------------------------------------------------
       // Constructors
       //----------------------------------------------------------------------
 
       /**
        * Constructs a new <code>XMLParser</code> that sends the CSV text
-       * output to the specified <code>OutputStream</code>.
+       * output to the specified byte-based <code>OutputStream</code>. The
+       * output will be encoded as UTF-8.
        *
        * @param out
        *    the {@link OutputStream} to send the CSV text output to,
@@ -110,7 +142,7 @@ public final class Converter extends Object {
        * @throws IllegalArgumentException
        *    if <code>out == null</code>.
        */
-      public XMLParser(OutputStream out) throws IllegalArgumentException {
+      XMLParser(OutputStream out) throws IllegalArgumentException {
 
          // Check preconditions
          if (out == null) {
@@ -118,7 +150,7 @@ public final class Converter extends Object {
          }
 
          // Initialize instance fields
-         _out = out;
+         _out = new OutputStreamWriter(out, Charset.forName("UTF-8"));
       }
       
 
@@ -127,22 +159,26 @@ public final class Converter extends Object {
       //----------------------------------------------------------------------
 
       /**
-       * The output stream. This is where the CSV output goes.
+       * The character-based output stream. This is where the CSV output goes.
        * Never <code>null</code>.
        */
-      private final OutputStream _out;
+      private final Writer _out;
 
       /**
        * The exception, in case of an error (fatal or not).
        */
       private Throwable _exception;
 
+      private boolean _insideRow;
+      private boolean _insideCell;
+      private boolean _insideCellText;
+
 
       //----------------------------------------------------------------------
       // Methods
       //----------------------------------------------------------------------
 
-      public void parse(InputStream in)
+      void parse(InputStream in)
       throws IllegalArgumentException, ConversionException {
 
          // Check preconditions
@@ -201,13 +237,74 @@ public final class Converter extends Object {
       @Override
       public void startElement(String uri, String localName, String qName, Attributes atts)
       throws SAXException {
-         // TODO
+
+         // Start of table cell
+         if (TABLE_NS.equals(uri) && "table-row".equals(localName)) {
+            _insideRow = true;
+
+         // Start of table cell
+         } else if (TABLE_NS.equals(uri) && "table-cell".equals(localName) && _insideRow) {
+            _insideCell = true;
+
+         // Start of cell text inside table cell
+         } else if (TEXT_NS.equals(uri) && "p".equals(localName) && _insideCell) {
+            _insideCellText = true;
+         }
+      }
+
+      @Override
+      public void endElement(String uri, String localName, String qName)
+      throws SAXException {
+
+         // End of table row: append a newline in the output
+         if (TABLE_NS.equals(uri) && "table-row".equals(localName) && _insideRow) {
+            // TODO: Only if we had any row data
+            output('\n');
+            _insideRow = false;
+
+         // End of table cell
+         } else if (TABLE_NS.equals(uri) && "table-cell".equals(localName) && _insideCell) {
+            _insideCell = false;
+
+
+         // Closing text element inside table cell
+         } else if (TEXT_NS.equals(uri) && "p".equals(localName) && _insideCellText) {
+            _insideCellText = false;
+         }
       }
 
       @Override
       public void characters(char[] ch, int start, int length)
       throws SAXException {
-         // TODO
+
+         // Short-circuit 
+         if (! _insideCellText) {
+            return;
+         }
+
+         // TODO: Review the performance of the for-loop below
+         output('"');
+         final int end = start + length;
+         for (int i = start; i < end; i++) {
+            char c = ch[i];
+            switch (c) {
+               case '"':
+                  output('"');
+                  output('"');
+                  break;
+               default:
+                  output(c);
+            }
+         }
+         output('"');
+      }
+
+      private void output(char c) throws SAXException {
+         try {
+            _out.write(c);
+         } catch (IOException cause) {
+            throw new SAXException("Failed to write character due to an I/O error.", cause);
+         }
       }
    }
 }
