@@ -172,6 +172,7 @@ public final class Converter extends Object {
       private boolean _insideRow;
       private boolean _insideCell;
       private boolean _insideCellText;
+      private boolean _hadCells;
 
 
       //----------------------------------------------------------------------
@@ -207,6 +208,19 @@ public final class Converter extends Object {
          if (cause != null) {
             throw new ConversionException("Failed to process \"content.xml\" entry.", cause);
          }
+
+         // Flush and close the output stream
+         try {
+            _out.flush();
+         } catch (Throwable e) {
+            // ignore
+         } finally {
+            try {
+               _out.close();
+            } catch (Throwable e) {
+               // ignore
+            }
+         }
       }
 
       @Override
@@ -241,9 +255,13 @@ public final class Converter extends Object {
          // Start of table cell
          if (TABLE_NS.equals(uri) && "table-row".equals(localName)) {
             _insideRow = true;
+            _hadCells  = false;
 
          // Start of table cell
          } else if (TABLE_NS.equals(uri) && "table-cell".equals(localName) && _insideRow) {
+            if (_hadCells) {
+               output(',');
+            }
             _insideCell = true;
 
          // Start of cell text inside table cell
@@ -265,7 +283,7 @@ public final class Converter extends Object {
          // End of table cell
          } else if (TABLE_NS.equals(uri) && "table-cell".equals(localName) && _insideCell) {
             _insideCell = false;
-
+            _hadCells   = true;
 
          // Closing text element inside table cell
          } else if (TEXT_NS.equals(uri) && "p".equals(localName) && _insideCellText) {
