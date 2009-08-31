@@ -173,6 +173,7 @@ public final class Converter extends Object {
       private boolean _insideCell;
       private boolean _insideCellText;
       private boolean _hadCells;
+      private boolean _stringValueType;
 
 
       //----------------------------------------------------------------------
@@ -262,6 +263,16 @@ public final class Converter extends Object {
             if (_hadCells) {
                output(',');
             }
+            String valueType = atts.getValue(OFFICE_NS, "value-type");
+            if ("float".equals(valueType)) {
+               output(atts.getValue(OFFICE_NS, "value"));
+               _stringValueType = false;
+            } else if ("date".equals(valueType)) {
+               output(atts.getValue(OFFICE_NS, "date-value"));
+               _stringValueType = false;
+            } else {
+               _stringValueType = true;
+            }
             _insideCell = true;
 
          // Start of cell text inside table cell
@@ -296,12 +307,13 @@ public final class Converter extends Object {
       throws SAXException {
 
          // Short-circuit 
-         if (! _insideCellText) {
+         if (! (_insideCellText && _stringValueType)) {
             return;
          }
 
          // TODO: Review the performance of the for-loop below
          output('"');
+
          final int end = start + length;
          for (int i = start; i < end; i++) {
             char c = ch[i];
@@ -314,12 +326,21 @@ public final class Converter extends Object {
                   output(c);
             }
          }
+
          output('"');
       }
 
       private void output(char c) throws SAXException {
          try {
             _out.write(c);
+         } catch (IOException cause) {
+            throw new SAXException("Failed to write character due to an I/O error.", cause);
+         }
+      }
+
+      private void output(String s) throws SAXException {
+         try {
+            _out.write(s, 0, s.length());
          } catch (IOException cause) {
             throw new SAXException("Failed to write character due to an I/O error.", cause);
          }
