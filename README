@@ -1,0 +1,71 @@
+This is ods2csv, a Java-based utility for converted ODS-documents to
+CSV-text. ODS stands for "OpenDocument Spreadsheet", while CSV means
+"Comma-Separated Values".
+
+The converter can be accessed in several ways:
+
+   - directly via the Java class Converter, which takes input from an
+     InputStream and produces output via an OutputStream;
+
+   - an Apache Ant task allows easy integration with Ant-based projects;
+
+   - a command line program makes integration with other UNIX-like programs a
+     breeze.
+
+This utility program has no external dependencies other than the Java
+runtime environment, verion 1.5 or higher.
+
+This software requires the following to build:
+
+   - J2SE 1.5 and Java SE 6
+   - Ant 1.7.1
+
+This software is available under the terms of a BSD-style license, see
+the accompanied LICENSE file.
+
+This task comes as a collection of Java source files that can be built with Ant.
+Just run:
+
+   ant
+
+The result will be a JAR file:
+
+   build/ods2csv.jar
+
+Example usage on the command line:
+
+   java -jar build/ods2csv.jar < sheet5.ods > sheet5.csv
+
+Example usage of the task in an Ant build file:
+
+   <taskdef name="ods2csv"
+       classname="com.pensioenpage.jynx.ods2csv.ConverterTask"
+       classpath="lib/ods2csv.jar" />
+
+   <ods2csv dir="src/ods" todir="build/csv" />
+
+Although all parameters are optional, the task supports various:
+
+   dir      - the source directory, to read ODS files from, defaults to
+              the project base directory;
+
+   todir    - the destination directory, to write the generated CSV files to,
+              defaults to the source directory;
+
+   includes - the files in the source directory to include, defaults to
+              '*.ods';
+
+   excludes - the files to exclude, even if they are matched by the includes;
+
+and other parameters inherited from the MatchingTask, see:
+
+   http://ant.apache.org/manual/dirtasks.html
+
+If you want to file a bug report or a feature request, please do so here:
+
+   http://github.com/znerd/ods2csv/issues
+
+This software has been developed by:
+
+   Ernst de Haan      -  ernst@pensioenpage.com
+   PensioenPage B.V.  -  https://www.pensioenpage.com/
