@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
@@ -184,6 +186,28 @@ public final class Converter extends Object {
       @Override
       public void fatalError(SAXParseException exception) {
          _exception = exception;
+      }
+
+      // NOTE: The expected XML structure is:
+      //
+      // <office:document-content office:version="1.2">
+      //    <office:body>
+      //       <office:spreadsheet>
+      //          <table:table>
+      //             <table:table-row>
+      //                <table:table-cell>
+      //                   <text:p>Text content in here</text:p>
+
+      @Override
+      public void startElement(String uri, String localName, String qName, Attributes atts)
+      throws SAXException {
+         // TODO
+      }
+
+      @Override
+      public void characters(char[] ch, int start, int length)
+      throws SAXException {
+         // TODO
       }
    }
 }
