@@ -34,7 +34,7 @@ public final class ConversionException extends Exception {
     * specified detail message.
     *
     * @param detail
-    *    the detail message.
+    *    the detail message, or <code>null</code> if none.
     */
    public ConversionException(String detail) {
       super(detail);
@@ -45,10 +45,10 @@ public final class ConversionException extends Exception {
     * specified detail message and cause exception.
     *
     * @param detail
-    *    the detail message.
+    *    the detail message, or <code>null</code> if none.
     *
     * @param cause
-    *    the cause exception.
+    *    the cause exception, or <code>null</code> if none.
     */
    public ConversionException(String detail, Throwable cause) {
       super(detail);
