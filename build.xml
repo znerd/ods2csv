@@ -15,7 +15,7 @@
 		<property name="javac.targetdir"     value="${outputdir}/classes" />
 		<property name="jar.filename"        value="${outputdir}/${ant.project.name}.jar" />
 		<property name="project.description" value="ODS-to-CSV Converter" />
-		<property name="project.mainclass"   value="com.pensioenpage.jynx.ods2csv.CommandlineTool" />
+		<property name="project.mainclass"   value="com.pensioenpage.jynx.ods2csv.Main" />
 		<property name="project.vendor"      value="PensioenPage B.V." />
 		<loadfile property="project.version" srcfile="VERSION">
 			<filterchain>
