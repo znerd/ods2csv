@@ -58,6 +58,13 @@
 			<compilerarg value="${javac.compilerargs}" />
 		</javac>
 
+		<copy todir="${javac.targetdir}">
+			<fileset dir="${javac.sourcedir}">
+				<include name="**/*.csv" /> 
+				<include name="**/*.ods" /> 
+			</fileset>
+		</copy>
+
 		<junit printsummary="yes" showoutput="yes">
 			<classpath>
 				<pathelement path="${javac.targetdir}" />
