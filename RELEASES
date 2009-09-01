@@ -1,0 +1,8 @@
+---- VERSION 0.1 (September 1, 2009) -----------------------------------------
+
+Initial release.
+
+CSV output is not perfect, as it contains some superfluous empty cells in each
+CSV record and it contains some extra newlines at the end. Also, the output of
+numbers, dates and percentages is not completely equivalent to the output
+OpenOffice.org produces.
