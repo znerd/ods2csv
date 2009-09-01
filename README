@@ -2,6 +2,9 @@ This is ods2csv, a Java-based utility for converted ODS-documents to
 CSV-text. ODS stands for "OpenDocument Spreadsheet", while CSV means
 "Comma-Separated Values".
 
+Note: While the aim is to default to output that is (almost) the same as what
+OpenOffice.org produces, this goal is currently not yet achieved.
+
 The converter can be accessed in several ways:
 
    - directly via the Java class Converter, which takes input from an
