@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project name="ods2csv" default="jar">
+<project name="ods2csv" default="all">
 
 	<target name="-init" description="Common initialization">
 		<property name="outputdir"           value="build" />
@@ -22,11 +22,13 @@
 				<striplinebreaks/>
 			</filterchain>
 		</loadfile>
+		<property name="unittests.classes.dir" value="com/pensioenpage/jynx/ods2csv/tests" />
+		<property name="unittests.runclass"    value="com.pensioenpage.jynx.ods2csv.tests.AllTests" />
 
 		<echo level="verbose" message="${ant.project.name} (&quot;${project.description}&quot;) version ${project.version}" />
 	</target>
 
-	<target name="compile" depends="-init">
+	<target name="compile" depends="-init" description="Compiles all library classes and builds the ods2csv.jar file">
 		<mkdir dir="${javac.targetdir}" />
 
 		<javac encoding="${javac.encoding}"
@@ -35,14 +37,41 @@
 		    deprecation="${javac.deprecation}"
 		       optimize="${javac.optimize}"
 		         target="${javac.targetvm}"
-		      listfiles="${javac.listfiles}">
+		      listfiles="${javac.listfiles}"
+		         srcdir="${javac.sourcedir}"
+		       excludes="${unittests.classes.dir}/*.java">
 			<compilerarg value="${javac.compilerargs}" />
-			<src path="src" />
 		</javac>
 	</target>
 
-	<target name="jar" depends="compile">
-		<jar jarfile="${jar.filename}" basedir="${javac.targetdir}">
+	<target name="unittests" depends="compile" description="Compiles and runs all unit tests (requires JUnit libraries)">
+		
+		<javac encoding="${javac.encoding}"
+		        destdir="${javac.targetdir}"
+		          debug="true"
+		    deprecation="${javac.deprecation}"
+		       optimize="${javac.optimize}"
+		         target="${javac.targetvm}"
+		      listfiles="${javac.listfiles}"
+		         srcdir="${javac.sourcedir}"
+		       includes="${unittests.classes.dir}/*.java">
+			<compilerarg value="${javac.compilerargs}" />
+		</javac>
+
+		<junit printsummary="yes" showoutput="yes">
+			<classpath>
+				<pathelement path="${javac.targetdir}" />
+			</classpath>
+
+			<formatter type="xml"                   />
+			<formatter type="plain" usefile="false" />
+			<test name="${unittests.runclass}" todir="${outputdir}" outfile="testresults" />
+		</junit>
+
+	</target>
+
+	<target name="jar" depends="compile" description="Builds the ods2csv.jar file">
+		<jar jarfile="${jar.filename}" basedir="${javac.targetdir}" excludes="${unittests.classes.dir}/*.class">
 			<manifest>
 				<attribute name="Main-Class"             value="${project.mainclass}"/>
 				<attribute name="Specification-Title"    value="${project.description}"/>
@@ -54,6 +83,8 @@
 			</manifest>
 		</jar>
 	</target>
+
+	<target name="all" depends="compile,unittests,jar" description="Compiles, runs all unit tests and builds the JAR" />
 
 	<target name="clean" depends="-init">
 		<delete dir="${outputdir}" />
