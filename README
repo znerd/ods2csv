@@ -18,10 +18,17 @@ The converter can be accessed in several ways:
 This utility program has no external dependencies other than the Java
 runtime environment, verion 1.5 or higher.
 
-This software requires the following to build:
+This software requires the following to build (with 'ant jar'):
 
    - J2SE 1.5 or Java SE 6
    - Ant 1.7.1
+
+To run the unit tests (using 'ant unittests'), the following libraries need to
+be in the classpath (or passed with 'ant -lib CLASSPATH'):
+
+   - ant-junit.jar    (tested with Ant 1.7.1)
+   - junit.jar        (tested with JUnit 4.0)
+   - commons-io.jar   (tested with Commons IO 1.4)
 
 This software is available under the terms of a BSD-style license, see
 the accompanied LICENSE file.
