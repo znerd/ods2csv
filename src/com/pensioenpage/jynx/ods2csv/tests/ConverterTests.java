@@ -3,6 +3,8 @@ package com.pensioenpage.jynx.ods2csv.tests;
 
 import com.pensioenpage.jynx.ods2csv.Converter;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
 import static org.junit.Assert.*;
@@ -23,6 +25,28 @@ public class ConverterTests {
    @Test
    public void testConverter() throws Exception {
 
+      // Make sure constructor does not accept null arguments
+      Converter converter = new Converter();
+      try {
+         converter.convert(null, null);
+         fail("Expected IllegalArgumentException.");
+      } catch (IllegalArgumentException e) {
+         // as expected
+      }
+      try {
+         converter.convert(new ByteArrayInputStream("Test".getBytes()), null);
+         fail("Expected IllegalArgumentException.");
+      } catch (IllegalArgumentException e) {
+         // as expected
+      }
+      try {
+         converter.convert(null, new ByteArrayOutputStream());
+         fail("Expected IllegalArgumentException.");
+      } catch (IllegalArgumentException e) {
+         // as expected
+      }
+
+      // Test with actual input files, compare with expected output
       boolean finished = false;
       int i = 0;
       do {
@@ -38,6 +62,8 @@ public class ConverterTests {
    }
 
    private void doTest(InputStream ods, InputStream csv) throws Exception {
-      // TODO
+      Converter converter = new Converter();
+      ByteArrayOutputStream actual = new ByteArrayOutputStream();
+      converter.convert(ods, actual);
    }
 }
