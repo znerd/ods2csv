@@ -16,7 +16,7 @@ The converter can be accessed in several ways:
      breeze.
 
 This utility program has no external dependencies other than the Java
-runtime environment, verion 1.5 or higher.
+runtime environment, version 1.5 or higher.
 
 This software requires the following to build (with 'ant jar'):
 
