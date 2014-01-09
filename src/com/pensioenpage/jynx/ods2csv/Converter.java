@@ -174,6 +174,7 @@ public final class Converter extends Object {
       private boolean _insideCellText;
       private boolean _hadCells;
       private boolean _stringValueType;
+      private String _text = "";
 
 
       //----------------------------------------------------------------------
@@ -276,7 +277,7 @@ public final class Converter extends Object {
             _insideCell = true;
 
          // Start of cell text inside table cell
-         } else if (TEXT_NS.equals(uri) && "p".equals(localName) && _insideCell) {
+         } else if (TEXT_NS.equals(uri) && "p".equals(localName) && _insideCell && !_insideCellText) {
             _insideCellText = true;
          }
       }
@@ -297,8 +298,12 @@ public final class Converter extends Object {
             _hadCells   = true;
 
          // Closing text element inside table cell
-         } else if (TEXT_NS.equals(uri) && "p".equals(localName) && _insideCellText) {
+         } else if (TEXT_NS.equals(uri) && "p".equals(localName) && _insideCell && _insideCellText) {
             _insideCellText = false;
+            if (_text.length() > 0) {
+               output('"' + _text + '"');
+            }
+            _text = "";
          }
       }
 
@@ -312,22 +317,17 @@ public final class Converter extends Object {
          }
 
          // TODO: Review the performance of the for-loop below
-         output('"');
-
          final int end = start + length;
          for (int i = start; i < end; i++) {
             char c = ch[i];
             switch (c) {
                case '"':
-                  output('"');
-                  output('"');
+                  _text = _text + '"' + '"';
                   break;
                default:
-                  output(c);
+                  _text = _text + c;
             }
          }
-
-         output('"');
       }
 
       private void output(char c) throws SAXException {
